@@ -1,47 +1,84 @@
-import React from "react";
+import React, {useContext, useState} from "react";
 import {
   StyleSheet,
   Text,
   View,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 
-export default class App extends React.Component {
-  state = {
-    email: "",
-    password: "",
+import Loader from "../components/Loader";
+import AuthContext from "../components/AuthContext";
+
+export default function LoginScreen() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loader, setLoader] = useState(false);
+
+  const authContext = useContext(AuthContext);
+
+  const handleLoginUser = () => {
+    if (!username || !password)
+      return Alert.alert("Please fill form with all details");
+
+    setLoader(true);
+    fetch(
+      `https://bsite.net/arslan35/api/student/login?userName=${username}&password=${password}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      },
+    )
+      .then(response => {
+        setLoader(false);
+
+        if (response.ok) {
+          authContext.setUser(true);
+          return Alert.alert("Login Successful.");
+        }
+
+        Alert.alert("Username or Password is invalid.");
+      })
+      .catch(error => {
+        setLoader(false);
+      });
   };
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.logo}>Smart Card</Text>
-        <View style={styles.inputView}>
-          <TextInput
-            style={styles.inputText}
-            placeholder="Email..."
-            placeholderTextColor="#003f5c"
-            onChangeText={text => this.setState({email: text})}
-          />
-        </View>
-        <View style={styles.inputView}>
-          <TextInput
-            secureTextEntry
-            style={styles.inputText}
-            placeholder="Password..."
-            placeholderTextColor="#003f5c"
-            onChangeText={text => this.setState({password: text})}
-          />
-        </View>
-        <TouchableOpacity>
-          <Text style={styles.forgot}>Forgot Password?</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.loginBtn}>
-          <Text style={styles.loginText}>LOGIN</Text>
-        </TouchableOpacity>
+  return (
+    <View style={styles.container}>
+      <Loader visible={loader} />
+      <Text style={styles.logo}>Smart Card</Text>
+      <View style={styles.inputView}>
+        <TextInput
+          style={styles.inputText}
+          placeholder="Username..."
+          placeholderTextColor="#003f5c"
+          onChangeText={text => setUsername(text)}
+        />
       </View>
-    );
-  }
+      <View style={styles.inputView}>
+        <TextInput
+          secureTextEntry
+          style={styles.inputText}
+          placeholder="Password..."
+          placeholderTextColor="#003f5c"
+          onChangeText={text => setPassword(text)}
+        />
+      </View>
+      <TouchableOpacity>
+        <Text style={styles.forgot}>Forgot Password?</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.loginBtn}
+        activeOpacity={0.8}
+        onPress={() => handleLoginUser()}>
+        <Text style={styles.loginText}>LOGIN</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
